@@ -14,7 +14,7 @@ class VentanaVerNotas(QWidget):
         self.notas = [
             {"titulo": "Nota de ejemplo", "contenido": "Esta es una nota que viene por defecto."}
         ]
-        
+
         self.init_ui()
 
     def init_ui(self):
@@ -25,16 +25,14 @@ class VentanaVerNotas(QWidget):
         main_layout = QVBoxLayout()
 
         # Título principal
-        lbl_titulo_app = QLabel("📝 Gestor de Notas")
+        lbl_titulo_app = QLabel("Gestor de Notas")
         lbl_titulo_app.setStyleSheet("font-size: 18px; font-weight: bold; margin-bottom: 5px;")
         main_layout.addWidget(lbl_titulo_app)
 
         # Panel dividido en dos columnas (Crear Nota a la Izquierda | Ver Nota a la Derecha)
         splitter = QSplitter(Qt.Horizontal)
 
-        # ==========================================
-        # COLUMNA IZQUIERDA: CREAR Y GUARDAR NOTAS
-        # ==========================================
+
         box_crear = QGroupBox("Crear Nueva Nota")
         layout_crear = QVBoxLayout()
 
@@ -49,7 +47,7 @@ class VentanaVerNotas(QWidget):
         layout_crear.addWidget(self.input_contenido)
 
         # Botón para GUARDAR la nota
-        self.btn_guardar = QPushButton("💾 Guardar Nota")
+        self.btn_guardar = QPushButton("Guardar Nota")
         self.btn_guardar.setStyleSheet("background-color: #2b78e4; color: white; font-weight: bold; padding: 6px;")
         self.btn_guardar.clicked.connect(self.guardar_nota)
         layout_crear.addWidget(self.btn_guardar)
@@ -64,7 +62,7 @@ class VentanaVerNotas(QWidget):
         layout_ver = QVBoxLayout()
 
         layout_ver.addWidget(QLabel("Selecciona una nota para leer:"))
-        
+
         # Desplegable (Menú/Selector) con los títulos
         self.combo_notas = QComboBox()
         self.combo_notas.currentIndexChanged.connect(self.mostrar_contenido_nota)
@@ -101,7 +99,6 @@ class VentanaVerNotas(QWidget):
         if not titulo or not contenido:
             QMessageBox.warning(self, "Campos vacíos", "Por favor ingresa tanto el título como el contenido de la nota.")
             return
-
         # Añadir la nueva nota a nuestra lista
         nueva_nota = {"titulo": titulo, "contenido": contenido}
         self.notas.append(nueva_nota)
