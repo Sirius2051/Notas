@@ -1,196 +1,146 @@
 import sys
 from PyQt5.QtWidgets import (
-    QApplication, QWidget, QTextEdit, 
-    QPushButton, QListWidget, QVBoxLayout, 
-    QHBoxLayout, QLabel, QTableWidget, QHeaderView, QAbstractItemView
+    QApplication, QWidget, QVBoxLayout, QHBoxLayout, 
+    QLabel, QLineEdit, QTextEdit, QPushButton, QComboBox, 
+    QSplitter, QMessageBox, QGroupBox
 )
+from PyQt5.QtCore import Qt
 
-class BlocDeNotas(QWidget):
+
+class VentanaVerNotas(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Mi Bloc de Notas")
-        self.resize(850, 480)
-        self.setStyleSheet("background-color: white;")
+        # Lista en memoria para almacenar las notas guardadas
+        self.notas = [
+            {"titulo": "Nota de ejemplo", "contenido": "Esta es una nota que viene por defecto."}
+        ]
         
-        self.notas_guardadas = {}
-        self.contador_notas = 1
-        self.nota_actual_titulo = None
-        
-        # Estructura principal: Tabla de 1 fila y 2 columnas (Texto | Barra Lateral)
-        self.tabla_layout = QTableWidget(1, 2, self)
-        self.tabla_layout.setShowGrid(False)
-        self.tabla_layout.horizontalHeader().setVisible(False)
-        self.tabla_layout.verticalHeader().setVisible(False)
-        self.tabla_layout.setSelectionMode(QAbstractItemView.NoSelection)
-        self.tabla_layout.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        
-        self.tabla_layout.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
-        self.tabla_layout.setColumnWidth(1, 240)  # Ancho fijo para la barra lateral
-        self.tabla_layout.verticalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
-        
-        layout_principal = QVBoxLayout(self)
-        layout_principal.setContentsMargins(5, 5, 5, 5)
-        layout_principal.addWidget(self.tabla_layout)
+        self.init_ui()
 
-        # -------------------------------------------------------------
-        # 1. PANEL IZQUIERDO (Editor de texto)
-        # -------------------------------------------------------------
-        widget_izquierdo = QWidget()
-        layout_izquierdo = QVBoxLayout(widget_izquierdo)
-        
-        self.area_texto = QTextEdit()
-        self.area_texto.setPlaceholderText("Escribe tu nota aquí...")
-        self.area_texto.setStyleSheet("background-color: white; color: black; border: 1px solid #ccc; font-size: 14px;")
-        
-        self.boton_guardar = QPushButton("Guardar Nota")
-        self.boton_guardar.setStyleSheet("""
-            QPushButton {
-                background-color: #007bff; 
-                color: white; 
-                border: none; 
-                padding: 10px;
-                font-weight: bold;
-                font-size: 13px;
-                border-radius: 4px;
-            }
-            QPushButton:hover {
-                background-color: #0056b3;
-            }
-        """)
-        self.boton_guardar.clicked.connect(self.guardar_nota)
-        
-        layout_izquierdo.addWidget(self.area_texto)
-        layout_izquierdo.addWidget(self.boton_guardar)
+    def init_ui(self):
+        self.setWindowTitle("Bloc de Notas - Crear y Ver Notas (PyQt5)")
+        self.resize(750, 500)
 
-        # -------------------------------------------------------------
-        # 2. PANEL DERECHO (Barra Lateral de Notas)
-        # -------------------------------------------------------------
-        widget_derecho = QWidget()
-        layout_derecho = QVBoxLayout(widget_derecho)
-        
-        etiqueta_barra = QLabel("Notas Guardadas")
-        etiqueta_barra.setStyleSheet("color: black; font-weight: bold; font-size: 14px;")
-        
-        # Botón para crear nueva nota limpia
-        self.boton_nueva = QPushButton("+ Nueva Nota")
-        self.boton_nueva.setStyleSheet("""
-            QPushButton {
-                background-color: #28a745; 
-                color: white; 
-                border: none; 
-                padding: 6px;
-                font-weight: bold;
-                border-radius: 3px;
-            }
-            QPushButton:hover {
-                background-color: #218838;
-            }
-        """)
-        self.boton_nueva.clicked.connect(self.nueva_nota)
+        # Layout Principal
+        main_layout = QVBoxLayout()
 
-        # Lista lateral donde se muestran las notas
-        self.lista_notas = QListWidget()
-        self.lista_notas.setStyleSheet("""
-            QListWidget {
-                background-color: #f8f9fa; 
-                color: black; 
-                border: 1px solid #ccc;
-                font-size: 13px;
-            }
-            QListWidget::item {
-                padding: 6px;
-            }
-            QListWidget::item:selected {
-                background-color: #007bff;
-                color: white;
-            }
-        """)
-        self.lista_notas.itemClicked.connect(self.cargar_nota)
+        # Título principal
+        lbl_titulo_app = QLabel("📝 Gestor de Notas")
+        lbl_titulo_app.setStyleSheet("font-size: 18px; font-weight: bold; margin-bottom: 5px;")
+        main_layout.addWidget(lbl_titulo_app)
+
+        # Panel dividido en dos columnas (Crear Nota a la Izquierda | Ver Nota a la Derecha)
+        splitter = QSplitter(Qt.Horizontal)
+
+        # ==========================================
+        # COLUMNA IZQUIERDA: CREAR Y GUARDAR NOTAS
+        # ==========================================
+        box_crear = QGroupBox("Crear Nueva Nota")
+        layout_crear = QVBoxLayout()
+
+        layout_crear.addWidget(QLabel("Título:"))
+        self.input_titulo = QLineEdit()
+        self.input_titulo.setPlaceholderText("Escribe el título aquí...")
+        layout_crear.addWidget(self.input_titulo)
+
+        layout_crear.addWidget(QLabel("Contenido:"))
+        self.input_contenido = QTextEdit()
+        self.input_contenido.setPlaceholderText("Escribe el texto de la nota...")
+        layout_crear.addWidget(self.input_contenido)
+
+        # Botón para GUARDAR la nota
+        self.btn_guardar = QPushButton("💾 Guardar Nota")
+        self.btn_guardar.setStyleSheet("background-color: #2b78e4; color: white; font-weight: bold; padding: 6px;")
+        self.btn_guardar.clicked.connect(self.guardar_nota)
+        layout_crear.addWidget(self.btn_guardar)
+
+        box_crear.setLayout(layout_crear)
+        splitter.addWidget(box_crear)
+
+        # ==========================================
+        # COLUMNA DERECHA: APARTADO "VER NOTAS"
+        # ==========================================
+        box_ver = QGroupBox("Ver Notas Guardadas")
+        layout_ver = QVBoxLayout()
+
+        layout_ver.addWidget(QLabel("Selecciona una nota para leer:"))
         
-        # Botón para eliminar la nota seleccionada
-        self.boton_eliminar = QPushButton("Eliminar Nota")
-        self.boton_eliminar.setStyleSheet("""
-            QPushButton {
-                background-color: #dc3545; 
-                color: white; 
-                border: none; 
-                padding: 6px;
-                font-weight: bold;
-                border-radius: 3px;
-            }
-            QPushButton:hover {
-                background-color: #c82333;
-            }
-        """)
-        self.boton_eliminar.clicked.connect(self.eliminar_nota)
+        # Desplegable (Menú/Selector) con los títulos
+        self.combo_notas = QComboBox()
+        self.combo_notas.currentIndexChanged.connect(self.mostrar_contenido_nota)
+        layout_ver.addWidget(self.combo_notas)
 
-        layout_derecho.addWidget(etiqueta_barra)
-        layout_derecho.addWidget(self.boton_nueva)
-        layout_derecho.addWidget(self.lista_notas)
-        layout_derecho.addWidget(self.boton_eliminar)
+        # Área de solo lectura para visualizar el contenido
+        self.visor_contenido = QTextEdit()
+        self.visor_contenido.setReadOnly(True)
+        self.visor_contenido.setPlaceholderText("El contenido de la nota aparecerá aquí...")
+        layout_ver.addWidget(self.visor_contenido)
 
-        # Ubicar ambos paneles en la tabla
-        self.tabla_layout.setCellWidget(0, 0, widget_izquierdo)
-        self.tabla_layout.setCellWidget(0, 1, widget_derecho)
+        box_ver.setLayout(layout_ver)
+        splitter.addWidget(box_ver)
+
+        # Ajustar proporciones de la ventana (50% cada lado)
+        splitter.setSizes([375, 375])
+        main_layout.addWidget(splitter)
+
+        # Botón inferior para volver al menú general (útil para tu proyecto en grupo)
+        self.btn_volver = QPushButton("Volver al Menú Principal")
+        main_layout.addWidget(self.btn_volver)
+
+        # Cargar las notas iniciales en el menú desplegable
+        self.actualizar_combo_notas()
+
+        self.setLayout(main_layout)
 
     def guardar_nota(self):
-        contenido = self.area_texto.toPlainText().strip()
-        if not contenido:
+        """Lee los campos de entrada, valida y guarda la nota en la lista."""
+        titulo = self.input_titulo.text().strip()
+        contenido = self.input_contenido.toPlainText().strip()
+
+        # Validación sencilla
+        if not titulo or not contenido:
+            QMessageBox.warning(self, "Campos vacíos", "Por favor ingresa tanto el título como el contenido de la nota.")
             return
-            
-        # Generar título basado en la primera línea
-        lineas = contenido.split("\n")
-        titulo_base = lineas[0].strip()
-        if len(titulo_base) > 20:
-            titulo_base = titulo_base[:20] + "..."
-            
-        if not titulo_base:
-            titulo_base = f"Nota {self.contador_notas}"
-            self.contador_notas += 1
 
-        # Si estamos editando una nota cargada anteriormente
-        if self.nota_actual_titulo and self.nota_actual_titulo in self.notas_guardadas:
-            del self.notas_guardadas[self.nota_actual_titulo]
-            # Eliminar item anterior de la lista
-            items = self.lista_notas.findItems(self.nota_actual_titulo, sys.modules['PyQt5.QtCore'].Qt.MatchExactly)
-            for item in items:
-                self.lista_notas.takeItem(self.lista_notas.row(item))
+        # Añadir la nueva nota a nuestra lista
+        nueva_nota = {"titulo": titulo, "contenido": contenido}
+        self.notas.append(nueva_nota)
 
-        # Evitar títulos duplicados
-        titulo_definitivo = titulo_base
-        version = 1
-        while titulo_definitivo in self.notas_guardadas:
-            titulo_definitivo = f"{titulo_base} ({version})"
-            version += 1
-            
-        self.notas_guardadas[titulo_definitivo] = contenido
-        self.lista_notas.addItem(titulo_definitivo)
-        self.nota_actual_titulo = titulo_definitivo
+        # Limpiar los campos para volver a escribir
+        self.input_titulo.clear()
+        self.input_contenido.clear()
 
-    def cargar_nota(self, elemento):
-        titulo_seleccionado = elemento.text()
-        if titulo_seleccionado in self.notas_guardadas:
-            self.area_texto.setText(self.notas_guardadas[titulo_seleccionado])
-            self.nota_actual_titulo = titulo_seleccionado
+        # Actualizar la lista en el menú de "Ver Notas"
+        self.actualizar_combo_notas()
 
-    def nueva_nota(self):
-        self.area_texto.clear()
-        self.nota_actual_titulo = None
-        self.lista_notas.clearSelection()
+        # Seleccionar automáticamente la nota recién guardada
+        self.combo_notas.setCurrentIndex(len(self.notas) - 1)
 
-    def eliminar_nota(self):
-        item_actual = self.lista_notas.currentItem()
-        if item_actual:
-            titulo = item_actual.text()
-            if titulo in self.notas_guardadas:
-                del self.notas_guardadas[titulo]
-            self.lista_notas.takeItem(self.lista_notas.row(item_actual))
-            self.nueva_nota()
+        QMessageBox.information(self, "¡Éxito!", "La nota ha sido guardada correctamente.")
 
-# Ejecución
-app = QApplication.instance()
-if app is None:
+    def actualizar_combo_notas(self):
+        """Actualiza las opciones del desplegable con los títulos guardados."""
+        self.combo_notas.clear()
+        if not self.notas:
+            self.combo_notas.addItem("No hay notas disponibles")
+            return
+
+        for nota in self.notas:
+            self.combo_notas.addItem(nota["titulo"])
+
+    def mostrar_contenido_nota(self, index):
+        """Muestra el contenido de la nota seleccionada en el combo."""
+        if index >= 0 and index < len(self.notas):
+            nota = self.notas[index]
+            texto_formateado = f"=== {nota['titulo']} ===\n\n{nota['contenido']}"
+            self.visor_contenido.setText(texto_formateado)
+        else:
+            self.visor_contenido.clear()
+
+
+# --- CÓDIGO DE PRUEBA ---
+if __name__ == "__main__":
     app = QApplication(sys.argv)
-
-ventana = BlocDeNotas()
-ventana.show()
+    ventana = VentanaVerNotas()
+    ventana.show()
+    sys.exit(app.exec_())
