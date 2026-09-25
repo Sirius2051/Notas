@@ -1,0 +1,50 @@
+import json
+import os
+
+ARCHIVO_NOTAS = "notas.json"
+
+
+def cargar_notas():
+    if os.path.exists(ARCHIVO_NOTAS):
+        with open(ARCHIVO_NOTAS, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {}
+
+
+def guardar_notas(notas):
+    """Guarda las notas en el archivo JSON."""
+    with open(ARCHIVO_NOTAS, "w", encoding="utf-8") as f:
+        json.dump(notas, f, indent=4, ensure_ascii=False)
+
+
+def crear_nota(titulo, contenido):
+    """Crea una nueva nota."""
+    notas = cargar_notas()
+    if titulo in notas:
+        print(f"Ya existe una nota con el título '{titulo}'.")
+        return False
+    notas[titulo] = contenido
+    guardar_notas(notas)
+    print(f" Nota '{titulo}' creada correctamente.")
+    return True
+
+
+def editar_nota(titulo, nuevo_contenido=None, nuevo_titulo=None):
+    """Edita el contenido o el título de una nota existente."""
+    notas = cargar_notas()
+    if titulo not in notas:
+        print(f"No se encontró la nota '{titulo}'.")
+        return False
+
+    # Cambiar contenido
+    if nuevo_contenido is not None:
+        notas[titulo] = nuevo_contenido
+
+    # Cambiar título (mover la nota)
+    if nuevo_titulo and nuevo_titulo != titulo:
+        notas[nuevo_titulo] = notas.pop(titulo)
+        titulo = nuevo_titulo
+
+    guardar_notas(notas)
+    print(f"✅ Nota '{titulo}' actualizada.")
+    return True
